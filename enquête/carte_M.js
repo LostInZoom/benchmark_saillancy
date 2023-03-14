@@ -37,7 +37,7 @@ fonction fin : création des fichiers d'export
 */
 function fin(){
   clearInterval(interval);
-  let csvContent = "data:text/csv;charset=utf-8," +"time,etape,dim_hat,dim_lar\n"
+  let csvContent = "data:text/csv;charset=utf-8," +"time,etape\n"
     + tab.map(e => e.join(",")).join("\n");
   var encodedUri = encodeURI(csvContent);
   var link = document.createElement("a");
@@ -46,7 +46,7 @@ function fin(){
   link.setAttribute("download", nom);
   document.body.appendChild(link); 
   link.click();
-  if(numero_session <4){
+  if(numero_session <3){
     var r='<button id="lancement" onclick="lancement()">Session suivante</button>';
     $("#but").append(r);
 
@@ -66,8 +66,7 @@ function fin(){
 
   }
   else{
-    let csvContent = "data:text/csv;charset=utf-8," +
-      + session.map(e => e.join(",")).join("\n");
+    let csvContent = "data:text/csv;charset=utf-8," + session.join(",")
     var encodedUri = encodeURI(csvContent);
     var link = document.createElement("a");
     link.setAttribute("href", encodedUri);

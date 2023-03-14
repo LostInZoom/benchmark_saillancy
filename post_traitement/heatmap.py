@@ -9,11 +9,12 @@ import matplotlib.cm as cm
 from scipy.ndimage.filters import gaussian_filter
 
 import glob
-
+# les fichiers coord_fixation_on_image
 liste_fichier_coord = glob.glob('resultat/*')
+# image
 liste_image = glob.glob('image/*')
 
-print(len(liste_fichier_coord))
+
 fixation = []
 
 for i in range(len(liste_fichier_coord)):

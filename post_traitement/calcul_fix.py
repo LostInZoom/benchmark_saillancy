@@ -66,7 +66,7 @@ for k in range(len(fixation)):
 
             # on calcul la position relative du point dans la carte
         if image != "false":
-            path = "recordings/"+image
+            path = "image/"+image
             img = Image.open(path)
             width = img.width
             height = img.height
