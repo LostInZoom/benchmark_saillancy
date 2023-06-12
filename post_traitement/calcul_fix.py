@@ -26,8 +26,14 @@ offset = start_time_system - start_time_synced
 path_to_export = "recordings"
 path_to_enquete = "resultat_enquete"
 path_to_fixation = os.path.join(path_to_export, "fixations_on_surface_Surface 1.csv")
-path_to_resultat= os.path.join(path_to_export, "resultat_enquete.csv")
+path_to_resultat = os.path.join(path_to_export, "resultat_enquete_2_session3.csv")
+path_to_distance = os.path.join(path_to_export, "head_pose_tracker_poses.csv")
 
+assert os.path.exists(path_to_distance)
+fichier_distance = pd.read_csv(path_to_distance)
+
+
+distance = fichier_distance["translation_z"].mean()*2.3
 assert os.path.exists(path_to_fixation)
 fixation = pd.read_csv(path_to_fixation)
 
@@ -75,11 +81,11 @@ for k in range(len(fixation)):
                 if float(fixation["norm_pos_y"][k]) > box_carte[1] and float(fixation["norm_pos_y"][k]) < box_carte[3]:
                     x_relatif = (float(fixation["norm_pos_x"][k])-box_carte[0])/(box_carte[2]-box_carte[0])
                     y_relatif = (float(fixation["norm_pos_y"][k])-box_carte[1])/(box_carte[3]-box_carte[1])
-                    coord_fixation.append([world_index,id,time,x_relatif,y_relatif,dispersion,image,height,width])
+                    coord_fixation.append([world_index,id,time,x_relatif,y_relatif,dispersion,image,height,width,distance])
 
 
-with open('resultat_enquete/coord_fixation_on_map.csv', 'w', newline='') as file:
+with open('resultat_enquete/coord_fixation_on_map_2_3_12.csv', 'w', newline='') as file:
     writer = csv.writer(file)
-    writer.writerow(["world_index","id_fixation","time","x","y","dispersion","image","height","width"]) # rajouter le zoom
+    writer.writerow(["world_index","id_fixation","time","x","y","dispersion","image","height","width","distance"]) # rajouter le zoom
     for i in range(len(coord_fixation)):
         writer.writerow(coord_fixation[i])
