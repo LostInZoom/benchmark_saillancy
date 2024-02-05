@@ -11,3 +11,17 @@
 /post_traitement/resultat_enquete
 /post_traitement/recordings
 /enquête/data
+/test*
+/resultat
+/post_traitement/coord_fixation_on_map
+/post_traitement/export
+/post_traitement/carte_fixation
+/post_traitement/head_pose_tracker
+/post_traitement/info_player
+/post_traitement/carte_fixation
+/post_traitement/old_resultat_enquete
+/post_traitement/output
+/post_traitement/res_covSal_benchmark
+/post_traitement/res_FES_benchmark
+/post_traitement/fixation
+/export Zenodo

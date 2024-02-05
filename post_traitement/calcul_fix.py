@@ -7,51 +7,6 @@ import csv
 import json
 from PIL import Image
 
-name_info_player = glob.glob('info_player/*')
-name_output = glob.glob('output/*')
-name_fixation = glob.glob('fixation/*')
-name_export = glob.glob('export/*')
-name_head_pose_tracker = glob.glob('head_pose_tracker/*')
-
-
-
-
-liste_fixation = []
-for i in range(len(name_fixation)):
-    # path_to_fixation = os.path.join(path_to_export,test[i])
-    assert os.path.exists(name_fixation[i])
-    liste_fixation.append(pd.read_csv(name_fixation[i]))
-
-liste_resultat = []
-for i in range(len(name_export)):
-    # path_to_fixation = os.path.join(path_to_export,test[i])
-    assert os.path.exists(name_export[i])
-    liste_resultat.append(pd.read_csv(name_export[i]))
-
-liste_head_pose_tracker = []
-for i in range(len(name_head_pose_tracker)):
-    # path_to_fixation = os.path.join(path_to_export,test[i])
-    assert os.path.exists(name_head_pose_tracker[i])
-    liste_head_pose_tracker.append(pd.read_csv(name_head_pose_tracker[i]))
-
-liste_output = []
-for i in range(len(name_output)):
-    # path_to_fixation = os.path.join(path_to_export,test[i])
-    assert os.path.exists(name_output[i])
-    f = open(name_output[i],)
-    liste_output.append(json.load(f))
-
-liste_info_player = []
-for i in range(len(name_info_player)):
-    # path_to_fixation = os.path.join(path_to_export,test[i])
-    assert os.path.exists(name_info_player[i])
-    f = open(name_info_player[i],)
-    liste_info_player.append(json.load(f))
-
-
-
-
-
 
 def box(width_im,height_im):
     return [(1920/2-width_im/2)/1920,(1080/2-height_im/2)/1080,(1920/2+width_im/2)/1920,(1080/2+height_im/2)/1080] 
