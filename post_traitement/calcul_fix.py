@@ -73,7 +73,8 @@ def calculs_fixation(name_info_player_folder,
                      name_fixation_folder,
                      name_resultat_folder,
                      name_head_pose_tracker_folder,
-                     name_export_folder):
+                     name_export_folder,
+                     name_image_folder):
     
     name_info_player = glob.glob(name_info_player_folder+'/*')
     name_output = glob.glob(name_output_folder+'/*')
@@ -139,7 +140,7 @@ def calculs_fixation(name_info_player_folder,
                 image,time,time_to_map = map(fixation["world_timestamp"][k],resultat)
 
                 if image != "false":
-                    path = "image/"+image
+                    path = name_image_folder +"/"+image
                     img = Image.open(path)
                     width = img.width
                     height = img.height

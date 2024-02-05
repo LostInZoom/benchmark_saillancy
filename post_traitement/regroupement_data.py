@@ -3,58 +3,29 @@ import numpy as np
 import os
 import pandas as pd
 import csv
-#nom coord
-test = glob.glob('resultat_bis/*')
+
+def regroupement_data(name_folder_input,name_output_folder):
+    result_files = glob.glob(name_folder_input +'/*')
+    fixation = []
+    for i in range(len(result_files)):
+        assert os.path.exists(result_files[i])
+        fixation.append(pd.read_csv(result_files[i]))
 
 
-path_to_name = os.path.join('entree', "name_im.csv")
-assert os.path.exists(path_to_name)
-name = pd.read_csv(path_to_name,header = None)
-fixation = []
-liste_par_image = []
-for i in range(len(test)):
-    # path_to_fixation = os.path.join(path_to_export,test[i])
-    assert os.path.exists(test[i])
-    fixation.append(pd.read_csv(test[i]))
+    resultat_liste = pd.DataFrame(columns=["id_fixation", "time", "x", "y", "dispersion", "image", "distance", "accuracy", "precision", "time_to_map", "participant"])
+    
+    for i in range(len(fixation)):
+        
+        participant = result_files[i].split(".")[0].split("_")[9]
+        fixation[i]['participant'] = participant    
+        resultat_liste = pd.concat([resultat_liste, fixation[i]], ignore_index=True)
 
-
-
-n=0   
-nom_liste = name[0][n]
-liste_p = []
-for k in range(len(fixation[i])):
-    if(nom_liste == fixation[i]["image"][k]):
-        liste_p.append([fixation[i]["id_fixation"][k],fixation[i]["time"][k],fixation[i]["x"][k],fixation[i]["y"][k],fixation[i]["dispersion"][k],fixation[i]["image"][k],fixation[i]["distance"][k]])
-    else:            
-        liste_par_image.append(liste_p)
-        liste_p =[]
-        n+=1
-        nom_liste = name[0][n]
-liste_par_image.append(liste_p)
-
-
-for i in range(1,len(fixation)):
-    n = 0
-    nom_liste = name[0][n]
-
-    for k in range(len(fixation[i])):
-        if(nom_liste == fixation[i]["image"][k]):
-            liste_par_image[n].append([fixation[i]["id_fixation"][k],fixation[i]["time"][k],fixation[i]["x"][k],fixation[i]["y"][k],fixation[i]["dispersion"][k],fixation[i]["image"][k],fixation[i]["distance"][k]])
-        else:            
-            n+=1
-            nom_liste = name[0][n]
-            liste_par_image[n].append([fixation[i]["id_fixation"][k],fixation[i]["time"][k],fixation[i]["x"][k],fixation[i]["y"][k],fixation[i]["dispersion"][k],fixation[i]["image"][k],fixation[i]["distance"][k]])
+    for image_name, group in resultat_liste.groupby("image"):
+        group.to_csv(name_output_folder +"/coord_fixation_"+image_name+".csv", index=False)
 
 
 
 
+__name__ == '__main__'
 
-
-
-for k in range(len(liste_par_image)):
-    print(k)
-    with open('resultat/coord_fixation_'+name[0][k]+'.csv', 'w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(["id_fixation","time","x","y","dispersion","image","distance"]) # rajouter le zoom
-        for i in range(len(liste_par_image[k])):
-            writer.writerow(liste_par_image[k][i])
+regroupement_data('coord_fixation_on_map','resultat')
