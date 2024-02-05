@@ -1,91 +1,170 @@
-#Ce script permet de convertir les points de fixation dans la scène 3D en coordonnée par rapport à la carte afficher à l'écran 
 
-
+import glob
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import csv
 import json
 from PIL import Image
-# resultat_carte.cvs est produit par l'enquête
-# fixations_on_surface_Surface est produit par l'acquisition avec l'ET, il est dans export/surface
-# info.player.json est dans le dossier produit par l'acquisition (il permet de calculer le temps réel)
+
+name_info_player = glob.glob('info_player/*')
+name_output = glob.glob('output/*')
+name_fixation = glob.glob('fixation/*')
+name_export = glob.glob('export/*')
+name_head_pose_tracker = glob.glob('head_pose_tracker/*')
 
 
 
-f = open('recordings/info.player.json',)
-json_time = json.load(f)
+
+liste_fixation = []
+for i in range(len(name_fixation)):
+    # path_to_fixation = os.path.join(path_to_export,test[i])
+    assert os.path.exists(name_fixation[i])
+    liste_fixation.append(pd.read_csv(name_fixation[i]))
+
+liste_resultat = []
+for i in range(len(name_export)):
+    # path_to_fixation = os.path.join(path_to_export,test[i])
+    assert os.path.exists(name_export[i])
+    liste_resultat.append(pd.read_csv(name_export[i]))
+
+liste_head_pose_tracker = []
+for i in range(len(name_head_pose_tracker)):
+    # path_to_fixation = os.path.join(path_to_export,test[i])
+    assert os.path.exists(name_head_pose_tracker[i])
+    liste_head_pose_tracker.append(pd.read_csv(name_head_pose_tracker[i]))
+
+liste_output = []
+for i in range(len(name_output)):
+    # path_to_fixation = os.path.join(path_to_export,test[i])
+    assert os.path.exists(name_output[i])
+    f = open(name_output[i],)
+    liste_output.append(json.load(f))
+
+liste_info_player = []
+for i in range(len(name_info_player)):
+    # path_to_fixation = os.path.join(path_to_export,test[i])
+    assert os.path.exists(name_info_player[i])
+    f = open(name_info_player[i],)
+    liste_info_player.append(json.load(f))
 
 
-start_time_system = float(json_time["start_time_system_s"]) # System Time at recording start
-start_time_synced = float(json_time["start_time_synced_s"])     # Pupil Time at recording start
-# Calculate the fixed offset between System and Pupil Time
-offset = start_time_system - start_time_synced
 
 
-path_to_export = "recordings"
-path_to_enquete = "resultat_enquete"
-path_to_fixation = os.path.join(path_to_export, "fixations_on_surface_Surface 1.csv")
-path_to_resultat = os.path.join(path_to_export, "resultat_enquete_2_session3.csv")
-path_to_distance = os.path.join(path_to_export, "head_pose_tracker_poses.csv")
-
-assert os.path.exists(path_to_distance)
-fichier_distance = pd.read_csv(path_to_distance)
 
 
-distance = fichier_distance["translation_z"].mean()*2.3
-assert os.path.exists(path_to_fixation)
-fixation = pd.read_csv(path_to_fixation)
-
-assert os.path.exists(path_to_resultat)
-resultat = pd.read_csv(path_to_resultat)
-# width_im = 1704
-# height_im =856
-
-coord_fixation =[]
-# box_carte = [(1920/2-width_im/2)/1920,(1080/2-height_im/2)/1080,(1920/2+width_im/2)/1920,(1080/2+height_im/2)/1080] # a calculer en pourcentage (xmin,ymin,xmax,ymax)
-# a voir comment faire 
 def box(width_im,height_im):
     return [(1920/2-width_im/2)/1920,(1080/2-height_im/2)/1080,(1920/2+width_im/2)/1920,(1080/2+height_im/2)/1080] 
-def map(timestamp):
+def map(timestamp,resultat):
     image = "false"
     time= 0
+    time_to_map= 0
     for t in range(len(resultat)):
         if (timestamp+offset)*1000 >= resultat["time"][t]:
             image = resultat["etape"][t]
             time = resultat["time"][t]
+            time_to_map = (timestamp+offset)*1000 -resultat["time"][t]
             continue
         else:
             break
-    return image,time
-
-for k in range(len(fixation)):
-    id = fixation["fixation_id"][k]
-    world_index = fixation["world_index"][k]
-    dispersion = fixation["dispersion"][k]
+    return image,time,time_to_map
+def calculs_fixation(name_info_player_folder,
+                     name_output_folder,
+                     name_fixation_folder,
+                     name_resultat_folder,
+                     name_head_pose_tracker_folder,
+                     name_export_folder):
     
-    if int(fixation["world_index"][k]) > 10: # on enleve les points de debut lors du lancement de l'acquisition 
-    #on prend en compte les points qui sont positionnée sur la carte 
-        
-
-        image,time = map(fixation["world_timestamp"][k])
-
-            # on calcul la position relative du point dans la carte
-        if image != "false":
-            path = "image/"+image
-            img = Image.open(path)
-            width = img.width
-            height = img.height
-            box_carte = box(width,height)
-            if float(fixation["norm_pos_x"][k]) > box_carte[0] and float(fixation["norm_pos_x"][k]) < box_carte[2]:   
-                if float(fixation["norm_pos_y"][k]) > box_carte[1] and float(fixation["norm_pos_y"][k]) < box_carte[3]:
-                    x_relatif = (float(fixation["norm_pos_x"][k])-box_carte[0])/(box_carte[2]-box_carte[0])
-                    y_relatif = (float(fixation["norm_pos_y"][k])-box_carte[1])/(box_carte[3]-box_carte[1])
-                    coord_fixation.append([world_index,id,time,x_relatif,y_relatif,dispersion,image,height,width,distance])
+    name_info_player = glob.glob(name_info_player_folder+'/*')
+    name_output = glob.glob(name_output_folder+'/*')
+    name_fixation = glob.glob(name_fixation_folder+'/*')
+    name_export = glob.glob(name_resultat_folder+'/*')
+    name_head_pose_tracker = glob.glob(name_head_pose_tracker_folder+'/*')
 
 
-with open('resultat_enquete/coord_fixation_on_map_2_3_12.csv', 'w', newline='') as file:
-    writer = csv.writer(file)
-    writer.writerow(["world_index","id_fixation","time","x","y","dispersion","image","height","width","distance"]) # rajouter le zoom
-    for i in range(len(coord_fixation)):
-        writer.writerow(coord_fixation[i])
+    liste_fixation = []
+    for i in range(len(name_fixation)):
+        assert os.path.exists(name_fixation[i])
+        liste_fixation.append(pd.read_csv(name_fixation[i]))
+
+    liste_resultat = []
+    for i in range(len(name_export)):
+        assert os.path.exists(name_export[i])
+        liste_resultat.append(pd.read_csv(name_export[i]))
+
+    liste_head_pose_tracker = []
+    for i in range(len(name_head_pose_tracker)):
+        assert os.path.exists(name_head_pose_tracker[i])
+        liste_head_pose_tracker.append(pd.read_csv(name_head_pose_tracker[i]))
+
+    liste_output = []
+    for i in range(len(name_output)):
+        assert os.path.exists(name_output[i])
+        f = open(name_output[i],)
+        liste_output.append(json.load(f))
+
+    liste_info_player = []
+    for i in range(len(name_info_player)):
+        assert os.path.exists(name_info_player[i])
+        f = open(name_info_player[i],)
+        liste_info_player.append(json.load(f))
+
+    liste_coord_fixation =[]
+
+    for p in range(len(liste_fixation)):
+        fixation = liste_fixation[p]
+        resultat = liste_resultat[p]
+        json_accuracy = liste_output[p]
+        json_time = liste_info_player[p]    
+        fichier_distance = liste_head_pose_tracker[p]
+
+        coord_fixation =[]
+        start_time_system = float(json_time["start_time_system_s"]) # System Time at recording start
+        start_time_synced = float(json_time["start_time_synced_s"])     # Pupil Time at recording start
+        # Calculate the fixed offset between System and Pupil Time
+        offset = start_time_system - start_time_synced
+
+        distance = fichier_distance["translation_z"].mean()*2.3
+        accuracy = json_accuracy[0]["accuracy"]["degrees"]
+        precision = json_accuracy[0]["precision"]["degrees"]
+
+
+        for k in range(len(fixation)):
+            id = fixation["fixation_id"][k]
+            world_index = fixation["world_index"][k]
+            dispersion = fixation["dispersion"][k]
+            
+            if int(fixation["world_index"][k]) > 10: 
+
+                image,time,time_to_map = map(fixation["world_timestamp"][k],resultat)
+
+                if image != "false":
+                    path = "image/"+image
+                    img = Image.open(path)
+                    width = img.width
+                    height = img.height
+                    box_carte = box(width,height)
+                    if float(fixation["norm_pos_x"][k]) > box_carte[0] and float(fixation["norm_pos_x"][k]) < box_carte[2]:   
+                        if float(fixation["norm_pos_y"][k]) > box_carte[1] and float(fixation["norm_pos_y"][k]) < box_carte[3]:
+                            x_relatif = (float(fixation["norm_pos_x"][k])-box_carte[0])/(box_carte[2]-box_carte[0])
+                            y_relatif = (float(fixation["norm_pos_y"][k])-box_carte[1])/(box_carte[3]-box_carte[1])
+                            coord_fixation.append([world_index,id,time,x_relatif,y_relatif,dispersion,image,height,width,distance,accuracy,precision,time_to_map])
+
+        liste_coord_fixation.append(coord_fixation)
+
+
+    for p in range(len(liste_fixation)):
+        name = 'coord_fixation_on_map'+name_fixation[p].split('fixations_on_surface_Surface')[1]
+        coord_fixation = liste_coord_fixation[p]
+        with open(name_export_folder+'/'+name, 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(["world_index","id_fixation","time","x","y","dispersion","image","height","width","distance","accuracy","precision","time_to_map"]) # rajouter le zoom
+            for i in range(len(coord_fixation)):
+                writer.writerow(coord_fixation[i])
+
+
+
+
+__name__ == '__main__'
+
+calculs_fixation('info_player','output','fixation','export','head_pose_tracker','coord_fixation_on_map')
