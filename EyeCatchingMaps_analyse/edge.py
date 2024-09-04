@@ -10,22 +10,7 @@ import matplotlib.pyplot as plt
 
 import os
 
-
-
-
-def create_polygon_mask(image, polygon_vertices):
-    new_exterior_coords = [(x, -y) for x, y in polygon_vertices]
-    polygon_coords = np.array(new_exterior_coords)
-    height, width = image.shape[:2]
-    
-    y, x = np.mgrid[:height, :width]
-    
-    polygon_path = Path(polygon_coords)
-    
-    mask = polygon_path.contains_points(np.vstack((x.flatten(), y.flatten())).T)
-    mask = mask.reshape((height, width))
-    
-    return mask
+from comparaison import create_mask, calcul_histograme,compare_histograms,create_buffer_mask
 
 
 
@@ -36,50 +21,64 @@ def calcul_edge(image):
     edges = cv2.Canny(image=blur_img, threshold1=100, threshold2=200)
     return edges
 
+
+
+def calcul_valeur(masque, edges):
+    edges_masque = cv2.bitwise_and(edges, edges, mask=masque)
+    mean = np.mean(edges_masque[masque == 1])
+    variance = np.var(edges_masque[masque == 1])
+    median = np.median(edges_masque[masque == 1])
+
+    total_pixels = np.sum(masque == 1)
+    edge_pixels = np.sum(edges_masque > 0)
+    densite = edge_pixels / total_pixels if total_pixels != 0 else 0
+    return variance, mean, densite,median
+
+
+
 if __name__ == '__main__':
-    image = cv2.imread('image\ecran_gm_monument_16_c.png',cv2.IMREAD_COLOR)
-    gdf = gpd.read_file('couche_shape\ecran_gm_monument_16_c.shp')
-    edge = calcul_edge(image)
-    print(edge)
-    plt.imshow(edge)
-    plt.show()
-    # liste_shapefile = glob.glob('couche_shape/*.shp')
-    # liste_name =[]
-    # liste_id = []
+    liste_path_image = glob.glob('image/*')
+    liste_path_heatmap = glob.glob('heatmap/*')
+    liste_name =[]
+    liste_moyenne =[]
+    liste_densite = []
+    liste_variance = []
+    liste_median = []
+    liste_densite_buffer = []
+    liste_densite_image = []
+    liste_rapport_densite_buffer = []
+    liste_rapport_densite_image = []
+    for k in range(len(liste_path_image)):
+            
+        image = cv2.imread(liste_path_image[k],cv2.IMREAD_COLOR)
+        heatmap = cv2.imread(liste_path_heatmap[k])
+        edge = calcul_edge(image)
 
-    # for path_shapefile in liste_shapefile:
-    #     gdf = gpd.read_file(path_shapefile)
-    #     image_path = 'image/'+ path_shapefile.split('\\')[1].split('.')[0]+  '.png'
-    #     if os.path.exists(image_path):
-    #         # image = pd.read_csv(image_path)
-    #         image = cv2.imread(image_path,cv2.IMREAD_COLOR)
-    #     else:
-    #         image_path = 'image/' + path_shapefile.split('\\')[1].split('.')[0] + '.PNG'
-    #         if os.path.exists(image_path):
-    #             # image = pd.read_csv(image_path)
-    #             image = cv2.imread(image_path,cv2.IMREAD_COLOR)
-    #         else:
-    #             print(path_shapefile.split('\\')[1].split('.')[0])
-
-    #     liste_masque = []
-    #     for idx, row in gdf.iterrows():
-    #         liste_name.append(image_path)
-    #         liste_id.append(row['id'])
-    #         exterior_coords = row['geometry'].exterior.coords
-    #         image_copie = image.copy()
-    #         masque_polygone = create_polygon_mask(image, exterior_coords)
-    #         image_copie[masque_polygone == False] = 0 
-
-
-
-
-    # donnees_homogene = pd.DataFrame({'name': liste_name,
-    #                                 'id':liste_id, 
-    #                                 'moyenne': liste_moyenne,
-    #                                 'median': liste_median,
-    #                                 'var':liste_variance
+        masque = create_mask(175,heatmap)
+        variance,mean,densite,median = calcul_valeur(masque,edge)
+        liste_name.append(liste_path_image[k].split("\\")[1])
+        liste_moyenne.append(mean)
+        liste_densite.append(densite)
+        liste_variance.append(variance)
+        liste_median.append(median)
+        masque_buffer = create_buffer_mask(masque, 100)
+        _,_,densite_buffer,_ = calcul_valeur(masque_buffer,edge)
+        densite_image = np.sum(edge > 0) / edge.size if  edge.size != 0 else 0
+        liste_densite_image.append(densite_image)
+        liste_densite_buffer.append(densite_buffer)
+        liste_rapport_densite_buffer.append(densite/densite_buffer ) if densite_buffer != 0 else liste_rapport_densite_buffer.append(0) 
+        liste_rapport_densite_image.append(densite/densite_image) if  densite_image != 0 else liste_rapport_densite_image.append(0)
+        # plt.imshow(edge, cmap='gray') 
+        
+        # plt.show()
+    # donnees = pd.DataFrame({'name': liste_name,
+    #                             'densite':liste_densite, 
+    #                             'densite_buffer' :liste_densite_buffer,
+    #                             'densite_map' : liste_densite_image,
+    #                             'rapport_densite_map':liste_rapport_densite_image,
+    #                             'rapport_densite_buffer':liste_rapport_densite_buffer
 
     #                                 })
-    # donnees_homogene.to_csv('export_analyse/donnees_zone_homogene.csv', index = False, header = True)
+    # donnees.to_csv('export_analyse/donnees_edges.csv', index = False, header = True)
 
 

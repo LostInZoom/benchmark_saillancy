@@ -2,17 +2,15 @@ import cv2
 import numpy as np
 import geopandas as gpd
 import glob
-import numpy as np
 from matplotlib.path import Path
 import cv2
 import pandas as pd
 import re
 import os
-import matplotlib.pyplot as plt
 
-from comparaison import create_mask, calcul_histograme,compare_histograms
+from comparaison import  calcul_histograme,compare_histograms
 
-
+from edge import calcul_edge, calcul_valeur
 
 def create_polygon_mask(image, polygon_vertices):
     height, width = image.shape[:2]
@@ -64,13 +62,18 @@ if __name__ == '__main__':
     liste_moyenne_heatmap =[]
     liste_median_heatmap = []
     liste_variance_heatmap = []
+    liste_moyenne_edge =[]
+    liste_densite_edge = []
+    liste_variance_edge = []
+    liste_median_edge = []
     liste_max_heatmap = []
     hotspot = []
-
     liste_id = []
     resultats = []
     liste_id_d = []
     liste_name_d = []
+
+
 
     for path_shapefile in liste_shapefile:
         gdf = gpd.read_file(path_shapefile)
@@ -93,30 +96,50 @@ if __name__ == '__main__':
         liste_max = []
 
         for idx, row in gdf.iterrows():
-
             liste_name.append(name)
             liste_id.append(row['id'])
             exterior_coords = row['geometry'].exterior.coords
             new_exterior_coords = [(x, -y) for x, y in exterior_coords]
             polygon_coords = np.array(new_exterior_coords)
+
+
+            #calcul sur la heatmap 
             moy_h, med_h, var_h, max_h = valeur_heatmap(heatmap,polygon_coords)
-
-            image_copie = image.copy()
-            masque_polygone = create_polygon_mask(image, polygon_coords)
-            image_copie[masque_polygone == False] = 0 
-            variance,mean,median = calcul_homogene(image_copie)
-
-            liste_variance.append(variance)
-            liste_moyenne.append(mean)
-            liste_median.append(median)
             liste_variance_heatmap.append(var_h)
             liste_moyenne_heatmap.append(moy_h)
             liste_median_heatmap.append(med_h)
             liste_max_heatmap.append(max_h)
+
+            #calcul sur l'image
+            image_copie = image.copy()
+            masque_polygone = create_polygon_mask(image, polygon_coords)
+            image_copie[masque_polygone == False] = 0 
+
+            variance,mean,median = calcul_homogene(image_copie)
+            liste_variance.append(variance)
+            liste_moyenne.append(mean)
+            liste_median.append(median)
+
+            #comparaison histogramme
             hist = calcul_histograme(image,masque_polygone)
             liste_hist.append(hist)
             liste_id_area.append(row['id'])
             liste_max.append(max_h)
+
+            #calcul sur les edges
+
+            edge = calcul_edge(image)
+            variance_edge,mean_edge,densite_edge,median_edge = calcul_valeur(masque_polygone.astype(np.uint8),edge)
+            liste_moyenne_edge.append(mean_edge)
+            liste_densite_edge.append(densite_edge)
+            liste_variance_edge.append(variance_edge)
+            liste_median_edge.append(median_edge)
+
+
+
+
+
+
 
         for i in range(len(liste_hist)):
             for j in range(i + 1, len(liste_hist)):
@@ -124,7 +147,7 @@ if __name__ == '__main__':
                 resultats.append(distance)
                 liste_id_d.append([liste_id_area[i],liste_id_area[j]])
                 liste_name_d.append(name)
-                if liste_max[i] >175 or liste_max[j]:
+                if liste_max[i] >175 or liste_max[j]>175:
                     hotspot.append(True)
                 else:
                     hotspot.append(False)
@@ -132,13 +155,18 @@ if __name__ == '__main__':
  
 
     donnees_homohene_objet = pd.DataFrame({'name': liste_name,
-                                    'id':liste_id, 
-                                    'moyenne': liste_moyenne,
-                                    'median': liste_median,
-                                    'var':liste_variance,
+                                    'id_objet':liste_id, 
+                                    'moyenne_pixel': liste_moyenne,
+                                    'median_pixel': liste_median,
+                                    'var_pixel':liste_variance,
                                     'moyenne_heatmap': liste_moyenne_heatmap,
                                     'median_heatmap': liste_median_heatmap,
-                                    'var_heatmap':liste_variance_heatmap
+                                    'var_heatmap':liste_variance_heatmap,
+                                    'max_heatmap': liste_max_heatmap,
+                                    'moyenne_edge': liste_moyenne_edge,
+                                    'median_edge': liste_median_edge,
+                                    'var_edge':liste_variance_edge,
+                                    'densite_edge': liste_densite_edge
                                     })
     donnees_homohene_objet.to_csv('export_analyse/donnees_homogene_objet.csv', index = False, header = True)
 

@@ -4,11 +4,6 @@ import os
 import pandas as pd
 # id_fixation,time,x,y,dispersion,image,distance,accuracy,precision,time_to_map,participant,world_index,height,width
 
-# name_google = pd.read_csv('name_im_google.csv')
-# name_test = "coord_fixation_SYNC169.PNG.csv"
-# name_image = name_test.split("_")[2].split(".csv")[0]
-# if name_image in name_google.iloc[:, 0].values:
-#         print(name_image)
 
 
 # fixaton = pd.read_csv('resultat/coord_fixation_ecran_gm_12.png.csv')

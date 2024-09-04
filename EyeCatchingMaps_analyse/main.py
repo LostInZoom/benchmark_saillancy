@@ -17,9 +17,11 @@ if __name__ == '__main__':
     liste_resultat = glob.glob('resultat/*')
     liste_heatmap = glob.glob('heatmap/*')
     liste_heatmap_paint = glob.glob('paint/saliencyMaps/*')
+    liste_heatmap_mapgaze = glob.glob('OnMapGaze/OnMapGaze/statistical_grayscale_heatmaps/*')
     name_google = pd.read_csv('autre/name_im_google.csv')
     heatmap = []
     heatmap_paint = []
+    heatmap_onmap  = []
     for i in range(len(liste_heatmap)):
         assert os.path.exists(liste_heatmap[i])
         
@@ -28,6 +30,10 @@ if __name__ == '__main__':
         assert os.path.exists(liste_heatmap_paint[i])
         
         heatmap_paint.append(Image.open(liste_heatmap_paint[i]))
+    for i in range(len(liste_heatmap_mapgaze)):
+        assert os.path.exists(liste_heatmap_mapgaze[i])
+        
+        heatmap_onmap.append(Image.open(liste_heatmap_mapgaze[i]))
 
     fixation = []
     for i in range(len(liste_resultat)):
@@ -37,11 +43,11 @@ if __name__ == '__main__':
 
     # donnée distance avec le centre
 
-    donnees_globales = pd.DataFrame(columns=['distance', 'participant', 'type_map', 'fdc'])
-    for k in range(len(fixation)):
-        donnees_calculées, _ = calcul_dist_centre(fixation[k], liste_resultat[k],name_google)
-        donnees_globales = pd.concat([donnees_globales, donnees_calculées], ignore_index=True)
-    donnees_globales.to_csv('donnee_distance_centre.csv', index = False, header = True)
+    # donnees_globales = pd.DataFrame(columns=['distance', 'participant', 'type_map', 'fdc'])
+    # for k in range(len(fixation)):
+    #     donnees_calculées, _ = calcul_dist_centre(fixation[k], liste_resultat[k],name_google)
+    #     donnees_globales = pd.concat([donnees_globales, donnees_calculées], ignore_index=True)
+    # donnees_globales.to_csv('donnee_distance_centre.csv', index = False, header = True)
 
 
     # plt.figure(figsize=(8, 6))
@@ -61,10 +67,10 @@ if __name__ == '__main__':
     # # Afficher les résultats de l'ANOVA
     # table_anova = sm.stats.anova_lm(modele_anova, typ=2)
     # print(table_anova)
-    print("tukey_results_fdc :")
+    # print("tukey_results_fdc :")
 
-    tukey_results_fdc = pairwise_tukeyhsd(donnees_globales['mean_distance'], donnees_globales['fdc'])
-    print(tukey_results_fdc)
+    # tukey_results_fdc = pairwise_tukeyhsd(donnees_globales['mean_distance'], donnees_globales['fdc'])
+    # print(tukey_results_fdc)
 
 
 
@@ -76,67 +82,90 @@ if __name__ == '__main__':
     liste_type_map = []
     liste_fdc = []
     #heatmap_benchmark
-    # for k in range(len(heatmap)):
-    #     name = liste_heatmap[k].split('\\')[1]
-    #     moyenne,ecart_type, median = calcul_stat_centre(heatmap[k],50)
-    #     liste_moyenne.append(moyenne)
-    #     liste_ecart_type.append(ecart_type)
-    #     liste_median.append(median)
-    #     liste_name.append(name)
-    #     type_map = name.split('_')[1]
-    #     if type_map == "ecran" or type_map =="portable" or type_map =="postable":
-    #         if type_map =="postable":
-    #             liste_type_map.append("portable")
-    #         else :
-    #             liste_type_map.append(type_map)
-    #         liste_fdc.append(name.split('_')[2])
-    #     else :
-    #         liste_type_map.append("autre")
-    #         name_image = name.split('_')[1]
-    #         if name_image.startswith("SYNC"):
-    #             liste_fdc.append("gm")
-    #         else:
-    #             liste_fdc.append("autre")
+    for k in range(len(heatmap)):
+        name = liste_heatmap[k].split('\\')[1]
+        moyenne,ecart_type, median = calcul_stat_centre(heatmap[k],50)
+        liste_moyenne.append(moyenne)
+        liste_ecart_type.append(ecart_type)
+        liste_median.append(median)
+        liste_name.append(name)
+        type_map = name.split('_')[1]
+        if type_map == "ecran" or type_map =="portable" or type_map =="postable":
+            if type_map =="postable":
+                liste_type_map.append("portable")
+            else :
+                liste_type_map.append(type_map)
+            liste_fdc.append(name.split('_')[2])
+        else :
+            liste_type_map.append("autre")
+            name_image = name.split('_')[1]
+            if name_image.startswith("SYNC"):
+                liste_fdc.append("gm")
+            else:
+                liste_fdc.append("autre")
         
-    # for k in range(len(heatmap_paint)):
-    #     moyenne,ecart_type, median = calcul_stat_centre(heatmap_paint[k],50)
-    #     liste_moyenne.append(moyenne)
-    #     liste_ecart_type.append(ecart_type)
-    #     liste_median.append(median)
-    #     liste_name.append(name)
-    #     liste_type_map.append("paint")
-    #     liste_fdc.append("paint")
-        
+    for k in range(len(heatmap_paint)):
+        name = liste_heatmap_paint[k]
+        moyenne,ecart_type, median = calcul_stat_centre(heatmap_paint[k],50)
+        liste_moyenne.append(moyenne)
+        liste_ecart_type.append(ecart_type)
+        liste_median.append(median)
+        liste_name.append(name)
+        liste_type_map.append("paint")
+        liste_fdc.append("paint")
+    for k in range(len(heatmap_onmap)):
+        name = liste_heatmap_mapgaze[k]
+        moyenne,ecart_type, median = calcul_stat_centre(heatmap_paint[k],50)
+        liste_moyenne.append(moyenne)
+        liste_ecart_type.append(ecart_type)
+        liste_median.append(median)
+        liste_name.append(name)
+        liste_type_map.append("ommap")
+        fdc = name.split('_')[-2]
+        liste_fdc.append(fdc)
 
-    # donnees_biais_centrale = pd.DataFrame({'name': liste_name,'moyenne': liste_moyenne,'ecart_type': liste_ecart_type,'median': liste_median, 'fdc':liste_fdc, 'type_map':liste_type_map})
+    donnees_biais_centrale = pd.DataFrame({'name': liste_name,'moyenne': liste_moyenne,'ecart_type': liste_ecart_type,'median': liste_median, 'fdc':liste_fdc, 'type_map':liste_type_map})
     # donnees_biais_centrale.to_csv('donnee_biais_centrale.csv', index = False, header = True)
 
-    # plt.figure(figsize=(8, 6))
+    plt.figure(figsize=(8, 6))
+
+    plt.boxplot([donnees_biais_centrale[donnees_biais_centrale['fdc'] == 'autre']['moyenne'],
+                 donnees_biais_centrale[donnees_biais_centrale['fdc'] == 'gm']['moyenne'],
+                 donnees_biais_centrale[donnees_biais_centrale['fdc'] == 'ign']['moyenne'],
+                 donnees_biais_centrale[donnees_biais_centrale['fdc'] == 'osm']['moyenne'],
+                donnees_biais_centrale[donnees_biais_centrale['fdc'] == 'Bing']['moyenne'],
+                donnees_biais_centrale[donnees_biais_centrale['fdc'] == 'paint']['moyenne'],
+                 donnees_biais_centrale[donnees_biais_centrale['fdc'] == 'Google']['moyenne'],
+                 donnees_biais_centrale[donnees_biais_centrale['fdc'] == 'ESRI']['moyenne'],
+                 donnees_biais_centrale[donnees_biais_centrale['fdc'] == 'OSM']['moyenne'],
+                 donnees_biais_centrale[donnees_biais_centrale['fdc'] == 'Wikimedia']['moyenne']],
+                labels=['autre', 'gm', 'ign', 'osm','Bing','paint','Google','ESRI','OSM','Wikimedia'])
+    
     # plt.boxplot([donnees_biais_centrale[donnees_biais_centrale['type_map'] == 'autre']['moyenne'],
     #             donnees_biais_centrale[donnees_biais_centrale['type_map'] == 'portable']['moyenne'],
     #             donnees_biais_centrale[donnees_biais_centrale['type_map'] == 'paint']['moyenne'],
     #             donnees_biais_centrale[donnees_biais_centrale['type_map'] == 'ecran']['moyenne']],
     #             labels=['autre', 'portable', 'ecran','paint'])
-    # plt.xlabel('type_map')
-    # plt.ylabel('moyenne')
-    # plt.grid(True)
-    # plt.show()
+    plt.xlabel('type_map')
+    plt.ylabel('moyenne')
+    plt.grid(True)
+    plt.show()
 
 
 
-    # modele_anova = ols('median ~ C(type_map) + C(fdc) ', data=donnees_biais_centrale).fit()
+    modele_anova = ols('median ~ C(type_map) + C(fdc) ', data=donnees_biais_centrale).fit()
 
-    # table_anova = sm.stats.anova_lm(modele_anova, typ=2)
+    table_anova = sm.stats.anova_lm(modele_anova, typ=2)
 
-    # print("anova :")
-    # print(table_anova)
+    print("anova :")
+    print(table_anova)
 
-    # print("tukey_results_type_map :")
+    print("tukey_results_type_map :")
 
-    # tukey_results_type_map = pairwise_tukeyhsd(donnees_biais_centrale['median'], donnees_biais_centrale['type_map'])
-    # print(tukey_results_type_map)
+    tukey_results_type_map = pairwise_tukeyhsd(donnees_biais_centrale['median'], donnees_biais_centrale['type_map'])
+    print(tukey_results_type_map)
 
-    # print("tukey_results_fdc :")
+    print("tukey_results_fdc :")
 
-    # tukey_results_fdc = pairwise_tukeyhsd(donnees_biais_centrale['median'], donnees_biais_centrale['fdc'])
-    # print(tukey_results_fdc)
+    tukey_results_fdc = pairwise_tukeyhsd(donnees_biais_centrale['median'], donnees_biais_centrale['fdc'])
+    print(tukey_results_fdc)

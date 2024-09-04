@@ -1,7 +1,7 @@
 /Test_07_03
 /CartoGAZEDatabase
 /doc
-
+calcul accuracy.txt
 /Jeu de donnée
 /post_traitement/carte_fixation
 /post_traitement/entree
@@ -25,3 +25,21 @@
 /post_traitement/res_FES_benchmark
 /post_traitement/fixation
 /export Zenodo
+/EyeCatchingMaps_analyse/autre
+/EyeCatchingMaps_analyse/couche_objet
+/EyeCatchingMaps_analyse/couche_shape
+/EyeCatchingMaps_analyse/heatmap
+/EyeCatchingMaps_analyse/image
+/EyeCatchingMaps_analyse/paint
+/EyeCatchingMaps_analyse/res_covSal
+/EyeCatchingMaps_analyse/res_FES_benchmark
+/EyeCatchingMaps_analyse/resultat
+/EyeCatchingMaps_analyse/stats
+/EyeCatchingMaps_analyse/__pycache__
+/EyeCatchingMaps_analyse/draw
+/EyeCatchingMaps_analyse/OnMapGaze
+/EyeCatchingMaps_analyse/analusye_map.qgz
+/EyeCatchingMaps_analyse/analyse_area_hotspot.xlsx
+/EyeCatchingMaps_analyse/resultat.ods
+/EyeCatchingMaps_analyse/export_analyse
+

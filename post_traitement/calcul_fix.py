@@ -10,7 +10,7 @@ from PIL import Image
 
 def box(width_im,height_im):
     return [(1920/2-width_im/2)/1920,(1080/2-height_im/2)/1080,(1920/2+width_im/2)/1920,(1080/2+height_im/2)/1080] 
-def map(timestamp,resultat):
+def map(timestamp,resultat,offset):
     image = "false"
     time= 0
     time_to_map= 0
@@ -92,7 +92,7 @@ def calculs_fixation(name_info_player_folder,
             
             if int(fixation["world_index"][k]) > 10: 
 
-                image,time,time_to_map = map(fixation["world_timestamp"][k],resultat)
+                image,time,time_to_map = map(fixation["world_timestamp"][k],resultat,offset)
 
                 if image != "false":
                     path = name_image_folder +"/"+image
